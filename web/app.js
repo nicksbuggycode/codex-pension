@@ -36,22 +36,27 @@ function buildProjection({
   kBalanceStart,
   kReturnRate, // as decimal
   kWithdrawRate, // as decimal
+  raisePct, // as decimal (immediate raise on current salary)
 }) {
   const rows = [];
-  for (let t = 0; t <= horizonYears; t++) {
+  const startSalary = currentSalary * (1 + raisePct);
+  let kBalance = kBalanceStart;
+  for (let t = 1; t <= horizonYears; t++) {
     const age = currentAge + t;
     const service = serviceYears + t;
-    const h3 = high3(currentSalary, growthRate, t);
+    const salaryThisYear = startSalary * Math.pow(1 + growthRate, t);
+    const h3 = high3(startSalary, growthRate, t);
     const factor = fersFactor(age, service);
     const annual = factor * h3 * service;
     const annualReal = toRealDollars(annual, inflationRate, t);
-    // 401k/TSP projection (no new contributions)
-    const kBalance = kBalanceStart * Math.pow(1 + kReturnRate, t);
+    // 401k/TSP projection with 10% employee contribution on salaryThisYear
+    const kContrib = 0.10 * salaryThisYear;
+    kBalance = kBalance * (1 + kReturnRate) + kContrib;
     const kIncomeAnnual = kWithdrawRate * kBalance; // withdrawal rule (slider)
     const kIncomeAnnualReal = toRealDollars(kIncomeAnnual, inflationRate, t);
     const totalAnnual = annual + kIncomeAnnual;
     const totalMonthly = totalAnnual / 12;
-    rows.push({ t, age, service, h3, factor, annual, annualReal, kBalance, kIncomeAnnual, kIncomeAnnualReal, totalAnnual, totalMonthly });
+    rows.push({ t, age, service, salaryThisYear, h3, factor, annual, annualReal, kBalance, kContrib, kIncomeAnnual, kIncomeAnnualReal, totalAnnual, totalMonthly });
   }
   return rows;
 }
@@ -77,11 +82,13 @@ function renderTable(rows) {
     tr.innerHTML = `
       <td>${r.age}</td>
       <td>${nf0.format(r.service)}</td>
+      <td>${fmtCurrency(r.salaryThisYear)}</td>
       <td>${fmtCurrency(r.h3)}</td>
       <td>${fmtPct(r.factor)}</td>
       <td>${fmtCurrency(r.annual)}</td>
       <td>${fmtCurrency(r.annualReal)}</td>
       <td>${fmtCurrency(r.kBalance)}</td>
+      <td>${fmtCurrency(r.kContrib)}</td>
       <td>${fmtCurrency(r.kIncomeAnnual)}</td>
       <td>${fmtCurrency(r.totalAnnual)}</td>
       <td>${fmtCurrency(r.totalMonthly)}</td>
@@ -148,6 +155,7 @@ function renderChart(rows, mode) {
 
 function readInputs() {
   const salary = Number(document.getElementById('salary').value || 0);
+  const raisePct = Number(document.getElementById('raise').value || 0) / 100;
   const service = Number(document.getElementById('service').value || 0);
   const growth = Number(document.getElementById('growth').value || 0) / 100;
   const inflation = Number(document.getElementById('inflation').value || 0) / 100;
@@ -156,7 +164,7 @@ function readInputs() {
   const kBalance = Number(document.getElementById('kBalance').value || 0);
   const kReturn = Number(document.getElementById('kReturn').value || 0) / 100;
   const kWithdraw = Number(document.getElementById('kWithdraw').value || 0) / 100;
-  return { salary, service, growth, inflation, horizon, displayMode, kBalance, kReturn, kWithdraw };
+  return { salary, raisePct, service, growth, inflation, horizon, displayMode, kBalance, kReturn, kWithdraw };
 }
 
 function clampInputs() {
@@ -170,8 +178,8 @@ function clampInputs() {
 
 function computeAndRender() {
   clampInputs();
-  const { salary, service, growth, inflation, horizon, displayMode, kBalance, kReturn, kWithdraw } = readInputs();
-  const rows = buildProjection({ currentSalary: salary, serviceYears: service, growthRate: growth, inflationRate: inflation, horizonYears: horizon, kBalanceStart: kBalance, kReturnRate: kReturn, kWithdrawRate: kWithdraw });
+  const { salary, raisePct, service, growth, inflation, horizon, displayMode, kBalance, kReturn, kWithdraw } = readInputs();
+  const rows = buildProjection({ currentSalary: salary, serviceYears: service, growthRate: growth, inflationRate: inflation, horizonYears: horizon, kBalanceStart: kBalance, kReturnRate: kReturn, kWithdrawRate: kWithdraw, raisePct });
   updateSummary(rows);
   renderChart(rows, displayMode);
   renderTable(rows);
@@ -187,6 +195,12 @@ function wireUp() {
   const updateKReturnValue = () => kReturnValue.textContent = `${Number(kReturnEl.value).toFixed(1)}%`;
   kReturnEl.addEventListener('input', updateKReturnValue);
   updateKReturnValue();
+  // immediate raise slider live value
+  const raiseEl = document.getElementById('raise');
+  const raiseValue = document.getElementById('raiseValue');
+  const updateRaiseValue = () => raiseValue.textContent = `${Number(raiseEl.value).toFixed(1)}%`;
+  raiseEl.addEventListener('input', updateRaiseValue);
+  updateRaiseValue();
   // live value for withdrawal rate slider
   const kWithdrawEl = document.getElementById('kWithdraw');
   const kWithdrawValue = document.getElementById('kWithdrawValue');

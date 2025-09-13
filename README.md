@@ -17,6 +17,7 @@ Kill a server using port 8000 (macOS/Linux):
 Inputs
 ------
 - Current salary
+- Immediate raise % (slider)
 - Years of service
 - Salary growth (annual %)
 - Current 401k/TSP balance
@@ -31,7 +32,8 @@ Assumptions (Publicly Available FERS Info)
 - Formula: pension = factor × high‑3 average × years of service.
 - Factor: 1.0%, or 1.1% if age ≥ 62 and service ≥ 20 (per OPM guidance).
 - High‑3: approximated as average of the final 3 years of salary using your growth rate.
-- 401k/TSP: balance compounds at your growth slider, with no new contributions; annual income approximated via a 4% withdrawal rule.
+- Salary raise slider instantly adjusts your current salary before growth is applied.
+- 401k/TSP: balance compounds at your growth slider with a 10% annual employee contribution of projected salary; annual income uses your withdrawal rate.
 - Not modeled: early-retirement reductions (MRA+10), special category employees, sick leave credit, survivor reductions, FEHB/FEGLI, TSP, Social Security, RAA, caps/locality specifics.
 - “Today’s $”: deflates nominal pension by your inflation assumption.
 
