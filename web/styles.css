@@ -1,0 +1,85 @@
+:root{
+  --bg: #0b1020;
+  --card: #0f1630;
+  --card-2: #0f1838;
+  --text: #e6ecff;
+  --muted: #a9b2d0;
+  --brand: #6aa9ff;
+  --accent: #9bffd8;
+  --danger: #ff7a7a;
+  --grid: rgba(255,255,255,0.08);
+}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{
+  margin:0; font-family:Inter,system-ui,Segoe UI,Roboto,Helvetica,Arial,sans-serif;
+  color:var(--text); background: radial-gradient(1200px 600px at 70% -10%, #1a2658 0%, transparent 60%),
+    radial-gradient(1000px 500px at -10% 10%, #15204a 0%, transparent 60%), var(--bg);
+  background-attachment: fixed;
+}
+.container{max-width:1100px;margin:0 auto;padding:0 16px}
+
+.app-header{
+  border-bottom:1px solid var(--grid);
+  background: linear-gradient(180deg, rgba(255,255,255,0.05), transparent);
+  position: sticky; top:0; backdrop-filter: blur(8px); z-index:5;
+}
+.header-inner{display:flex; align-items:center; justify-content:space-between; padding:16px 0}
+.brand{display:flex; align-items:center; gap:12px}
+.logo{width:40px;height:40px;border-radius:10px;display:grid;place-items:center;background:linear-gradient(135deg,#3851d8,#6aa9ff);box-shadow:0 6px 24px rgba(106,169,255,.35)}
+.brand h1{font-size:18px;margin:0 0 2px 0}
+.brand p{margin:0;color:var(--muted);font-size:13px}
+.github-link{color:var(--accent);text-decoration:none;border:1px solid var(--grid);padding:8px 12px;border-radius:10px}
+
+.main-grid{display:grid;grid-template-columns:1fr;gap:16px;padding:20px 0 40px}
+@media (min-width: 900px){
+  .main-grid{grid-template-columns: 360px 1fr}
+  .summary-card{grid-column:2}
+  .chart-card{grid-column:1 / span 2}
+}
+
+.card{background:linear-gradient(180deg, rgba(255,255,255,.04), transparent), var(--card); border:1px solid var(--grid); border-radius:16px; padding:16px; box-shadow: 0 6px 30px rgba(0,0,0,.25)}
+.card h2{margin:0 0 12px 0; font-size:18px}
+.hint{color:var(--muted); font-size:12px; margin-top:8px}
+
+.controls{display:grid; grid-template-columns:1fr 1fr; gap:12px}
+.controls .actions{grid-column:1 / span 2; display:flex; gap:10px; justify-content:flex-end; margin-top:8px}
+.field{display:flex; flex-direction:column; gap:6px}
+.field label{font-size:13px; color:var(--muted)}
+.field input,.field select{
+  width:100%; padding:10px 12px; border-radius:12px; border:1px solid var(--grid);
+  background:var(--card-2); color:var(--text); outline:none; transition: border .15s ease;
+}
+.field input[type="range"]{ padding:0; background:transparent; border:none }
+.field .small{font-size:12px}
+.muted{color:var(--muted)}
+.field input:focus,.field select:focus{border-color:#6aa9ff}
+.with-prefix,.with-suffix{position:relative}
+.prefix,.suffix{position:absolute; top:50%; transform:translateY(-50%); color:var(--muted); font-size:13px}
+.prefix{left:10px}
+.suffix{right:10px}
+.with-prefix input{padding-left:26px}
+.with-suffix input{padding-right:30px}
+
+.btn{cursor:pointer; padding:10px 14px; border-radius:12px; border:1px solid var(--grid); background:var(--card-2); color:var(--text)}
+.btn.primary{background:linear-gradient(135deg,#3851d8,#6aa9ff); border:0}
+.btn.secondary{background:transparent}
+
+.summary-grid{display:grid; grid-template-columns:1fr; gap:12px}
+@media (min-width: 600px){.summary-grid{grid-template-columns:1fr 1fr 1fr}}
+.kpi{padding:12px; border:1px dashed var(--grid); border-radius:12px; background:linear-gradient(180deg, rgba(255,255,255,.03), transparent)}
+.kpi-label{font-size:12px; color:var(--muted)}
+.kpi-value{font-weight:700; font-size:22px; margin-top:2px}
+.kpi-sub{color:var(--muted); font-size:12px}
+
+.chart-header{display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:6px}
+.legend{font-size:12px; color:var(--muted)}
+
+.table-wrap{overflow:auto; margin-top:12px; border:1px solid var(--grid); border-radius:12px}
+.results-table{width:100%; border-collapse:separate; border-spacing:0}
+.results-table thead th{position:sticky; top:0; background:var(--card-2); z-index:1}
+.results-table th,.results-table td{padding:10px 12px; text-align:left; border-bottom:1px solid var(--grid); font-size:13px}
+.results-table tbody tr:hover{background:rgba(255,255,255,.03)}
+.mono{font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace}
+
+.app-footer{border-top:1px solid var(--grid); padding:16px 0; color:var(--muted)}

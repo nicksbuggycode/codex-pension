@@ -1,0 +1,170 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Pension Projection | Government Employee (Age 40)</title>
+    <meta name="description" content="Responsive single-page app to project a US federal FERS-style pension over the next 30 years based on current salary and years of service." />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <header class="app-header">
+      <div class="container header-inner">
+        <div class="brand">
+          <div class="logo" aria-hidden="true">🧮</div>
+          <div>
+            <h1>Government Pension Projection</h1>
+            <p>FERS-style estimate for a 40-year-old</p>
+          </div>
+        </div>
+        <a class="github-link" href="#about" title="About assumptions">About</a>
+      </div>
+    </header>
+
+    <main class="container main-grid">
+      <section class="card inputs-card" aria-labelledby="inputsTitle">
+        <h2 id="inputsTitle">Your Inputs</h2>
+        <form id="controls" class="controls" autocomplete="off">
+          <div class="field">
+            <label for="salary">Current salary</label>
+            <div class="with-prefix">
+              <span class="prefix">$</span>
+              <input id="salary" name="salary" type="number" inputmode="decimal" min="0" step="100" value="90000" />
+            </div>
+          </div>
+          <div class="field">
+            <label for="service">Years of service</label>
+            <input id="service" name="service" type="number" min="0" max="40" step="1" value="10" />
+          </div>
+          <div class="field">
+            <label for="kBalance">Current 401k/TSP balance</label>
+            <div class="with-prefix">
+              <span class="prefix">$</span>
+              <input id="kBalance" name="kBalance" type="number" inputmode="decimal" min="0" step="1000" value="150000" />
+            </div>
+          </div>
+          <div class="field">
+            <label for="kReturn">401k growth assumption
+              <span class="muted small" id="kReturnValue">5.0%</span>
+            </label>
+            <input id="kReturn" name="kReturn" type="range" min="0" max="12" step="0.1" value="5.0" />
+          </div>
+          <div class="field">
+            <label for="kWithdraw">Withdrawal rate
+              <span class="muted small" id="kWithdrawValue">4.0%</span>
+            </label>
+            <input id="kWithdraw" name="kWithdraw" type="range" min="2" max="6" step="0.1" value="4.0" />
+          </div>
+          <div class="field">
+            <label for="growth">Expected annual salary growth</label>
+            <div class="with-suffix">
+              <input id="growth" name="growth" type="number" min="-5" max="15" step="0.1" value="2.5" />
+              <span class="suffix">%</span>
+            </div>
+          </div>
+          <div class="field">
+            <label for="inflation">Inflation (for real $ view)</label>
+            <div class="with-suffix">
+              <input id="inflation" name="inflation" type="number" min="0" max="10" step="0.1" value="2.0" />
+              <span class="suffix">%</span>
+            </div>
+          </div>
+          <div class="field">
+            <label for="horizon">Projection horizon</label>
+            <div class="with-suffix">
+              <input id="horizon" name="horizon" type="number" min="5" max="40" step="1" value="30" />
+              <span class="suffix">years</span>
+            </div>
+          </div>
+          <div class="field">
+            <label for="displayMode">Display</label>
+            <select id="displayMode" name="displayMode">
+              <option value="annual-nominal">Annual (nominal)</option>
+              <option value="monthly-nominal">Monthly (nominal)</option>
+              <option value="annual-real">Annual (today's $)</option>
+              <option value="monthly-real">Monthly (today's $)</option>
+            </select>
+          </div>
+          <div class="actions">
+            <button type="button" id="resetBtn" class="btn secondary">Reset</button>
+            <button type="submit" class="btn primary">Update</button>
+          </div>
+        </form>
+        <p class="hint">Age fixed at 40. Estimates assume US federal FERS basic annuity rules; see About.</p>
+      </section>
+
+      <section class="card summary-card" aria-labelledby="summaryTitle">
+        <h2 id="summaryTitle">Summary</h2>
+        <div class="summary-grid">
+          <div class="kpi">
+            <div class="kpi-label">Nearest milestone</div>
+            <div class="kpi-value" id="milestoneLabel">Age 62 (1.1% factor)</div>
+            <div class="kpi-sub" id="milestoneAmount">$0 / yr</div>
+          </div>
+          <div class="kpi">
+            <div class="kpi-label">Next year estimate</div>
+            <div class="kpi-value" id="nextYearAnnual">$0</div>
+            <div class="kpi-sub">annual (nominal)</div>
+          </div>
+          <div class="kpi">
+            <div class="kpi-label">Max in horizon</div>
+            <div class="kpi-value" id="maxAnnual">$0</div>
+            <div class="kpi-sub" id="maxAnnualMeta">at age —</div>
+          </div>
+        </div>
+      </section>
+
+      <section class="card chart-card" aria-labelledby="chartTitle">
+        <div class="chart-header">
+          <h2 id="chartTitle">Projected Pension</h2>
+          <div class="legend" id="legend"></div>
+        </div>
+        <canvas id="pensionChart" height="140"></canvas>
+        <div class="table-wrap">
+          <table id="resultsTable" class="results-table" aria-label="Projection table">
+            <thead>
+              <tr>
+                <th>Age</th>
+                <th>Service</th>
+                <th>High-3</th>
+                <th>Factor</th>
+                <th>Pension annual (nominal)</th>
+                <th>Pension annual (today's $)</th>
+                <th>401k balance</th>
+                <th>401k income (annual)</th>
+                <th>Total annual</th>
+                <th>Total monthly</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </section>
+
+      <section id="about" class="card about-card" aria-labelledby="aboutTitle">
+        <h2 id="aboutTitle">About & Assumptions</h2>
+        <ul class="about-list">
+          <li>This tool estimates a US federal FERS basic annuity: <span class="mono">pension = factor × high‑3 average pay × years of service</span>.</li>
+          <li>Factor defaults to 1.0%, or 1.1% at age 62+ with 20+ years of service (per OPM guidance).</li>
+          <li>High‑3 is approximated as the average of the final 3 years’ salary using your growth assumption.</li>
+          <li>401k/TSP balance compounds at your growth slider; no new contributions modeled. Annual 401k income approximated via a 4% withdrawal rule.</li>
+          <li>No reductions or additions are modeled (early retirement reductions, MRA+10, survivor benefit, sick leave credit, FEHB/FEGLI, TSP, Social Security, RAA, special categories, caps, or locality changes).</li>
+          <li>"Today’s $" uses your inflation input to deflate nominal values.</li>
+          <li>This is an educational estimate, not financial advice. Confirm specifics with your HR/OPM.</li>
+        </ul>
+      </section>
+    </main>
+
+    <footer class="app-footer">
+      <div class="container">
+        <small>Built for planning. Data and formulas from publicly available FERS materials (OPM). No personal data stored.</small>
+      </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js" integrity="sha256-Ru2dWfv3i0Cf+5YOEvYqGlZ0izx4kRN4/MqV1hC3o3o=" crossorigin="anonymous"></script>
+    <script src="./app.js"></script>
+  </body>
+  </html>
