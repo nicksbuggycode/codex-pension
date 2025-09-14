@@ -95,6 +95,8 @@ function renderTable(rows) {
     `;
     tbody.appendChild(tr);
   });
+  const rowsCountEl = document.getElementById('rowsCount');
+  if (rowsCountEl) rowsCountEl.textContent = `Rows: ${rows.length}`;
 }
 
 let chart;
@@ -220,6 +222,19 @@ function wireUp() {
     document.getElementById('horizon').value = 30;
     document.getElementById('displayMode').value = 'annual-nominal';
     computeAndRender();
+  });
+  // export CSV
+  document.getElementById('exportCsvBtn').addEventListener('click', () => {
+    const { salary, raisePct, service, growth, inflation, horizon, displayMode, kBalance, kReturn, kWithdraw } = readInputs();
+    const rows = buildProjection({ currentSalary: salary, serviceYears: service, growthRate: growth, inflationRate: inflation, horizonYears: horizon, kBalanceStart: kBalance, kReturnRate: kReturn, kWithdrawRate: kWithdraw, raisePct });
+    const header = ['Age','Service','Salary','High3','Factor','PensionAnnual','PensionAnnualReal','KBalance','KContrib','KIncomeAnnual','TotalAnnual','TotalMonthly'];
+    const csv = [header.join(',')].concat(rows.map(r => [r.age,r.service,Math.round(r.salaryThisYear),Math.round(r.h3),r.factor,(Math.round(r.annual)),(Math.round(r.annualReal)),(Math.round(r.kBalance)),(Math.round(r.kContrib)),(Math.round(r.kIncomeAnnual)),(Math.round(r.totalAnnual)),(Math.round(r.totalMonthly))].join(','))).join('\n');
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'projection.csv';
+    a.click();
+    URL.revokeObjectURL(a.href);
   });
   computeAndRender();
 }
