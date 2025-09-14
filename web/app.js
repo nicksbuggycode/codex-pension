@@ -101,6 +101,12 @@ function renderTable(rows) {
 
 let chart;
 function renderChart(rows, mode) {
+  // Check if Chart.js is available
+  if (typeof Chart === 'undefined') {
+    console.warn('Chart.js not loaded, skipping chart render');
+    return;
+  }
+  
   const ctx = document.getElementById('pensionChart');
   const labels = rows.map(r => r.age);
 
@@ -181,7 +187,11 @@ function clampInputs() {
 function computeAndRender() {
   clampInputs();
   const { salary, raisePct, service, growth, inflation, horizon, displayMode, kBalance, kReturn, kWithdraw } = readInputs();
+  console.log('Input values:', { salary, raisePct, service, growth, inflation, horizon, displayMode, kBalance, kReturn, kWithdraw });
+  
   const rows = buildProjection({ currentSalary: salary, serviceYears: service, growthRate: growth, inflationRate: inflation, horizonYears: horizon, kBalanceStart: kBalance, kReturnRate: kReturn, kWithdrawRate: kWithdraw, raisePct });
+  console.log('Generated rows:', rows.length, rows.slice(0, 3));
+  
   updateSummary(rows);
   renderChart(rows, displayMode);
   renderTable(rows);
@@ -239,4 +249,15 @@ function wireUp() {
   computeAndRender();
 }
 
-document.addEventListener('DOMContentLoaded', wireUp);
+function initializeApp() {
+  // Ensure Chart.js is loaded before initializing
+  if (typeof Chart === 'undefined') {
+    console.warn('Chart.js not loaded yet, retrying in 100ms...');
+    setTimeout(initializeApp, 100);
+    return;
+  }
+  console.log('Chart.js loaded, initializing app');
+  wireUp();
+}
+
+document.addEventListener('DOMContentLoaded', initializeApp);
